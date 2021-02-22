@@ -1,10 +1,12 @@
 package com.appsdeveloperblogappws.mobileappws.service.impl;
 
+import com.appsdeveloperblogappws.mobileappws.exceptions.UserServiceException;
 import com.appsdeveloperblogappws.mobileappws.io.repositories.UserRepository;
 import com.appsdeveloperblogappws.mobileappws.io.entity.UserEntity;
 import com.appsdeveloperblogappws.mobileappws.service.UserService;
 import com.appsdeveloperblogappws.mobileappws.shared.Utils;
 import com.appsdeveloperblogappws.mobileappws.shared.dto.UserDto;
+import com.appsdeveloperblogappws.mobileappws.ui.model.response.ErrorMessages;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
@@ -64,6 +66,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto getUserByUserId(String userId) {
+        UserDto returnValue = new UserDto();
+        UserEntity userEntity = userRepository.findByUserId(userId);
+
+        if(userEntity == null) {
+            throw new UsernameNotFoundException(userId);
+        }
+
+        BeanUtils.copyProperties(userEntity, returnValue);
+
+        return returnValue;
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository.findByEmail(email);
 
@@ -71,5 +87,24 @@ public class UserServiceImpl implements UserService {
             throw new UsernameNotFoundException(email);
         }
         return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
+    }
+
+    @Override
+    public UserDto updateUser(String userId, UserDto user) {
+        UserDto returnValue = new UserDto();
+        UserEntity userEntity = userRepository.findByUserId(userId);
+
+        if(userEntity == null) {
+            throw new UserServiceException(ErrorMessages.NO_RECORD_FOUND.getErrorMessage());
+        }
+
+        userEntity.setFirstName(user.getFirstName());
+        userEntity.setLastName(user.getLastName());
+
+        UserEntity updatedUserDetails = userRepository.save(userEntity);
+
+        BeanUtils.copyProperties(updatedUserDetails, returnValue);
+
+        return returnValue;
     }
 }
