@@ -32,7 +32,7 @@ public class UserEntity implements Serializable {
     @Column(nullable=false)
     private Boolean emailVerificationStatus = false;
 
-    @OneToMany(mappedBy="userDetails", cascade=CascadeType.ALL)
+    @OneToMany(mappedBy="userDetails", cascade=CascadeType.ALL, fetch=FetchType.EAGER)
     private List<AddressEntity> addresses;
 
     public long getId() {

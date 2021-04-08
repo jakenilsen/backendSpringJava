@@ -1,6 +1,5 @@
 package com.appsdeveloperblogappws.mobileappws.shared;
 
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.regions.Regions;
@@ -13,8 +12,6 @@ import com.amazonaws.services.simpleemail.model.Message;
 import com.amazonaws.services.simpleemail.model.SendEmailRequest;
 import com.amazonaws.services.simpleemail.model.SendEmailResult;
 import com.appsdeveloperblogappws.mobileappws.shared.dto.UserDto;
-
-import java.io.IOException;
 
 @Service
 public class AmazonSES {
@@ -94,7 +91,7 @@ public class AmazonSES {
 
         AmazonSimpleEmailService client =
                 AmazonSimpleEmailServiceClientBuilder.standard()
-                        .withRegion(Regions.US_EAST_1).build();
+                        .withRegion(Regions.AP_NORTHEAST_2).build();
 
         String htmlBodyWithToken = PASSWORD_RESET_HTMLBODY.replace("$tokenValue", token);
         htmlBodyWithToken = htmlBodyWithToken.replace("$firstName", firstName);

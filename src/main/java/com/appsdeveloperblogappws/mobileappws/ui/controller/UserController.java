@@ -5,11 +5,12 @@ import com.appsdeveloperblogappws.mobileappws.service.AddressService;
 import com.appsdeveloperblogappws.mobileappws.service.UserService;
 import com.appsdeveloperblogappws.mobileappws.shared.dto.AddressDto;
 import com.appsdeveloperblogappws.mobileappws.shared.dto.UserDto;
+import com.appsdeveloperblogappws.mobileappws.ui.model.request.PasswordResetModel;
+import com.appsdeveloperblogappws.mobileappws.ui.model.request.PasswordResetRequestModel;
 import com.appsdeveloperblogappws.mobileappws.ui.model.request.UserDetailsRequestModel;
 import com.appsdeveloperblogappws.mobileappws.ui.model.response.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -53,9 +54,9 @@ public class UserController {
     public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception {
         UserRest returnValue = new UserRest();
 
-        if (userDetails.getFirstName().isEmpty()) {
-            throw new UserServiceException(ErrorMessages.MISSING_REQUIRED_FIELD.getErrorMessage());
-        }
+//        if (userDetails.getFirstName().isEmpty()) {
+//            throw new UserServiceException(ErrorMessages.MISSING_REQUIRED_FIELD.getErrorMessage());
+//        }
 
         ModelMapper modelMapper = new ModelMapper();
         UserDto userDto = modelMapper.map(userDetails, UserDto.class);
@@ -78,14 +79,14 @@ public class UserController {
     public UserRest updateUser(@RequestBody UserDetailsRequestModel userDetails, @PathVariable String id) {
         UserRest returnValue = new UserRest();
 
-        ModelMapper modelMapper = new ModelMapper();
-        UserDto userDto = modelMapper.map(userDetails, UserDto.class);
+        UserDto userDto = new UserDto();
+        userDto = new ModelMapper().map(userDetails, UserDto.class);
 //        UserDto userDto = new UserDto();
 //        BeanUtils.copyProperties(userDetails, userDto);
 
         UserDto updatedUser = userService.updateUser(id, userDto);
 
-        returnValue = modelMapper.map(updatedUser, UserRest.class);
+        returnValue = new ModelMapper().map(updatedUser, UserRest.class);
 //        BeanUtils.copyProperties(updatedUser, returnValue);
 
         return returnValue;
@@ -115,11 +116,15 @@ public class UserController {
 
         List<UserDto> users = userService.getUsers(page, limit);
 
-        for (UserDto userDto : users) {
-            UserRest userModel = new UserRest();
-            BeanUtils.copyProperties(userDto, userModel);
-            returnValue.add(userModel);
-        }
+        Type listType = new TypeToken<List<UserRest>>() {
+        }.getType();
+        returnValue = new ModelMapper().map(users, listType);
+
+//        for (UserDto userDto : users) {
+//            UserRest userModel = new UserRest();
+//            BeanUtils.copyProperties(userDto, userModel);
+//            returnValue.add(userModel);
+//        }
 
         return returnValue;
     }
@@ -190,6 +195,48 @@ public class UserController {
         }
         else {
             returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+        }
+
+        return returnValue;
+    }
+
+    /*
+     * http://localhost:8080/mobile-app-ws/users/password-reset-request
+     */
+    @PostMapping(path = "/password-reset-request",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
+    consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
+    )
+    public OperationStatusModel requestReset(@RequestBody PasswordResetRequestModel passwordResetRequestModel) {
+        OperationStatusModel returnValue = new OperationStatusModel();
+
+        boolean operationResult = userService.requestPasswordReset(passwordResetRequestModel.getEmail());
+
+        returnValue.setOperationName(RequestOperationName.REQUEST_PASSWORD_RESET.name());
+        returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+
+        if(operationResult) {
+            returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
+        }
+
+        return returnValue;
+    }
+
+    @PostMapping(path = "/password-reset",
+            consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
+    )
+    public OperationStatusModel resetPassword(@RequestBody PasswordResetModel passwordResetModel) {
+        OperationStatusModel returnValue = new OperationStatusModel();
+
+        boolean operationResult = userService.resetPassword(
+                passwordResetModel.getToken(),
+                passwordResetModel.getPassword());
+
+        returnValue.setOperationName(RequestOperationName.PASSWORD_RESET.name());
+        returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+
+        if(operationResult) {
+            returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
         }
 
         return returnValue;

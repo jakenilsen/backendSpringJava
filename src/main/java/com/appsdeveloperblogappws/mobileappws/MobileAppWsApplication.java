@@ -35,4 +35,6 @@ public class MobileAppWsApplication  extends SpringBootServletInitializer {
     public AppProperties getAppProperties() {
         return new AppProperties();
     }
+
+
 }
