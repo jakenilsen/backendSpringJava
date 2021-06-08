@@ -81,13 +81,10 @@ public class UserController {
 
         UserDto userDto = new UserDto();
         userDto = new ModelMapper().map(userDetails, UserDto.class);
-//        UserDto userDto = new UserDto();
-//        BeanUtils.copyProperties(userDetails, userDto);
 
         UserDto updatedUser = userService.updateUser(id, userDto);
 
         returnValue = new ModelMapper().map(updatedUser, UserRest.class);
-//        BeanUtils.copyProperties(updatedUser, returnValue);
 
         return returnValue;
     }
